@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Security & Validation Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUserProgress(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 320)) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 200)) &&
+             (!('targetExamDate' in data) || (data.targetExamDate is string && data.targetExamDate.size() <= 30)) &&
+             (!('practiceAttempts' in data) || data.practiceAttempts is list) &&
+             (!('mockHistory' in data) || data.mockHistory is list) &&
+             (!('activeMistakes' in data) || data.activeMistakes is map) &&
+             (!('bookmarkedQuestionIds' in data) || data.bookmarkedQuestionIds is list) &&
+             (!('activePracticeSession' in data) || data.activePracticeSession == null || data.activePracticeSession is map) &&
+             (!('activeMockExam' in data) || data.activeMockExam == null || data.activeMockExam is map) &&
+             (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    // 3. Match /users/{userId} collection
+    match /users/{userId} {
+      // Direct document read strictly permitted to the authenticated owner
+      allow get: if isValidId(userId) && isOwner(userId);
+
+      // Listing all user documents is strictly forbidden
+      allow list: if false;
+
+      // Create only own document with validated payload
+      allow create: if isValidId(userId) &&
+                       isOwner(userId) &&
+                       isValidUserProgress(request.resource.data, userId);
+
+      // Update only own document with validated payload and immutable userId
+      allow update: if isValidId(userId) &&
+                       isOwner(userId) &&
+                       request.resource.data.userId == resource.data.userId &&
+                       isValidUserProgress(request.resource.data, userId);
+
+      // Delete only own document
+      allow delete: if isValidId(userId) && isOwner(userId);
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "NASRDA Promotion CBT Prep",
+  "description": "CBT exam revision platform for Nigerian public servants preparing for GL 11 to GL 12 promotion examinations with 227 verified questions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

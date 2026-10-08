@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "UserProgress": {
+      "title": "UserProgress",
+      "description": "Learner CBT study progress, mock exam results, and active session state",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Authentication User UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name"
+        },
+        "targetExamDate": {
+          "type": "string",
+          "description": "Optional user-selected promotion examination target date"
+        },
+        "practiceAttempts": {
+          "type": "array",
+          "description": "History of checked practice question attempts"
+        },
+        "mockHistory": {
+          "type": "array",
+          "description": "Completed mock examination records and scores"
+        },
+        "activeMistakes": {
+          "type": "object",
+          "description": "Map of unresolved missed questions keyed by question ID"
+        },
+        "bookmarkedQuestionIds": {
+          "type": "array",
+          "description": "List of bookmarked question IDs"
+        },
+        "activePracticeSession": {
+          "type": "object",
+          "description": "Active in-progress practice session state if any"
+        },
+        "activeMockExam": {
+          "type": "object",
+          "description": "Active in-progress timed mock exam state if any"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last synchronization"
+        }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProgress",
+      "description": "User progress document accessed only by the owning authenticated user"
+    }
+  }
+}
